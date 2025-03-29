@@ -61,10 +61,10 @@
             this.statusStrip.ImageScalingSize = new System.Drawing.Size(36, 36);
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabelCount});
-            this.statusStrip.Location = new System.Drawing.Point(0, 956);
+            this.statusStrip.Location = new System.Drawing.Point(0, 847);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Padding = new System.Windows.Forms.Padding(2, 0, 33, 0);
-            this.statusStrip.Size = new System.Drawing.Size(1867, 48);
+            this.statusStrip.Size = new System.Drawing.Size(1880, 48);
             this.statusStrip.TabIndex = 0;
             this.statusStrip.Text = "statusStrip";
             // 
@@ -150,7 +150,7 @@
             this.dgvGroups.Name = "dgvGroups";
             this.dgvGroups.RowHeadersWidth = 92;
             this.dgvGroups.RowTemplate.Height = 37;
-            this.dgvGroups.Size = new System.Drawing.Size(1873, 728);
+            this.dgvGroups.Size = new System.Drawing.Size(1873, 727);
             this.dgvGroups.TabIndex = 0;
             // 
             // tabPageDirections
@@ -235,7 +235,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(14F, 29F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1867, 1004);
+            this.ClientSize = new System.Drawing.Size(1880, 895);
             this.Controls.Add(this.tabControl);
             this.Controls.Add(this.statusStrip);
             this.Margin = new System.Windows.Forms.Padding(7);
