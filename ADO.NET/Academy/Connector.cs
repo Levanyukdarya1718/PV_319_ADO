@@ -28,10 +28,11 @@ namespace Academy
 		{
 			FreeConsole();
 		}
-		public Dictionary<string, int> GetDictionary (string columns, string tables)
+		public Dictionary<string, int> GetDictionary (string columns, string tables, string condition="")
         {
 			Dictionary<string, int> values = new Dictionary<string, int>();
-			string cmd = $"SELECT {columns}FROM {tables}";
+			string cmd = $"SELECT {columns} FROM {tables}";
+			if (condition != "") cmd += $" WHERE {condition}";
 			SqlCommand command = new SqlCommand(cmd, connection);
 			connection.Open();
 			SqlDataReader reader = command.ExecuteReader();
@@ -92,5 +93,15 @@ namespace Academy
 		public static extern bool AllocConsole();
 		[DllImport("kernel32.dll")]
 		public static extern bool FreeConsole();
+		public int Count(string table)
+		{
+			int count = 0;
+			string cmd = $"SELECT COUNT(*) FROM {table}";
+			SqlCommand command = new SqlCommand(cmd, connection);
+			connection.Open();
+			count = Convert.ToInt32(command.ExecuteScalar());
+			connection.Close();
+			return count;
+		}
 	}
 }

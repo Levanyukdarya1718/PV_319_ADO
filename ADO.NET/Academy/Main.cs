@@ -16,13 +16,14 @@ namespace Academy
 	{
 		Connector connector;
 		Dictionary<string, int> d_directions;
+		Dictionary<string, int> d_groups;
 		DataGridView[] tables;
 		Query[] queries = new Query[]
 		{
 			new Query(
 						"last_name,first_name,middle_name,birth_date,group_name, direction_name",
-						"Students,Groups, Directions",
-						"[group]=group_id AND direction=direction_id"
+						"Students JOIN Groups ON ([group]=group_id) JOIN Directions ON (direction=direction_id)"
+						//"[group]=group_id AND direction=direction_id"
 					),
 			new Query   (
 						"last_name,first_name,middle_name,birth_date,group_name, direction_name",
@@ -30,11 +31,11 @@ namespace Academy
 						"[group]=group_id AND direction=direction_id"
 						),
 			new Query (
-						"direction_name, COUNT(DISTINCT group_id) AS N'Количество групп', COUNT(stud_id) AS 'Количество студентов'",
-						"Students RIGHT JOIN Groups ON([group]=group_id) RIGHT JOIN Directions ON (direction=direction_id)",
-						"",
-						"direction_name"
-						),
+					"direction_name,COUNT(DISTINCT group_id) AS N'Количество группов', COUNT(stud_id) AS N'Количество студентов'",
+					"Students RIGHT JOIN Groups ON ([group]=group_id) RIGHT JOIN Directions ON (direction=direction_id)",
+					"group_id!=0 OR stud_id!=0",
+					"direction_name"
+				),
 			new Query ("*", "Disciplines"),
 			new Query ("*", "Teachers")
 
@@ -65,25 +66,37 @@ namespace Academy
 				(
 					ConfigurationManager.ConnectionStrings["PV_319_Import"].ConnectionString
 				);
+	
 			d_directions = connector.GetDictionary("*", "Directions");
-			cbGroupsDirection.Items.AddRange(d_directions.Select(k=>k.Key).ToArray());
-			//dgv - DataGridView
-			dgvStudents.DataSource = connector.Select
-						(
-						"last_name,first_name,middle_name,birth_date,group_name, direction_name",
-						"Students,Groups, Directions",
-						"[group]=group_id AND direction=direction_id"
-						);
-			toolStripStatusLabelCount.Text = $"Количество групп:{dgvGroups.RowCount - 1}.";
-		}
+			d_groups = connector.GetDictionary("group_id, group_name", "Groups");
+			cbStudentsGroup.Items.AddRange(d_groups.Select(g => g.Key).ToArray());
+			cbGroupsDirection.Items.AddRange(d_directions.Select(d=>d.Key).ToArray());
+			cbStudentsDirections.Items.AddRange(d_directions.Select(d => d.Key).ToArray());
+			cbStudentsGroup.Items.Insert(0, "Все группы");
+			cbStudentsDirections.Items.Insert(0, "Все направления");
+			cbStudentsDirections.SelectedIndex = cbStudentsGroup.SelectedIndex = 0;
+			toolStripStatusLabelCount.Text = $"Количество студентов: {dgvStudents.RowCount - 1}";
 
+			//dgv - DataGridView
+			//dgvStudents.DataSource = connector.Select
+			//			(
+			//			"last_name,first_name,middle_name,birth_date,group_name, direction_name",
+			//			"Students,Groups, Directions",
+			//			"[group]=group_id AND direction=direction_id"
+			//			);
+			//toolStripStatusLabelCount.Text = $"Количество групп:{dgvGroups.RowCount - 1}.";
+			LoadPage(0);
+		}
+		void LoadPage(int i,Query query=null)
+		{ 
+			if(query==null) query = queries[i];
+			tables[i].DataSource= connector.Select(query.Columns, query.Tables, query.Condition, query.Group_by);
+			toolStripStatusLabelCount.Text = status_massages[i]+CountRecordsInDGV(tables[i]);
+		}
         private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
-			int i = tabControl.SelectedIndex;
-			Query query = queries[tabControl.SelectedIndex];
-			tables[tabControl.SelectedIndex].DataSource= 
-				connector.Select(query.Columns, query.Tables, query.Condition, query.Group_by);
-			toolStripStatusLabelCount.Text = status_massages[tabControl.SelectedIndex]+CountRecordsInDGV(tables[i]);
+			LoadPage(tabControl.SelectedIndex);
+			//int i = tabControl.SelectedIndex;
 			/*switch(tabControl.SelectedIndex)
             {
 				case 0:
@@ -147,5 +160,43 @@ namespace Academy
         {
 			return dgv.RowCount == 0 ? 0 : dgv.RowCount - 1;
         }
-	}
+		private void cbDirections_CheckedChanged(object sender, EventArgs e)
+		{
+			dgvDirections.DataSource = connector.Select
+				(
+					"direction_name,COUNT(DISTINCT group_id) AS N'Количество групп', COUNT(stud_id) AS N'Количество студентов'",
+					"Students RIGHT JOIN Groups ON ([group]=group_id) RIGHT JOIN Directions ON (direction=direction_id)",
+					"",
+					"direction_name"
+				);
+		}
+
+		private void cbStudentsDirections_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			int i = cbStudentsDirections.SelectedIndex;
+			Dictionary<string, int> d_groups = connector.GetDictionary
+
+				(
+				"group_id, group_name",
+				"Groups",
+				i == 0 ? "" : $"direction={d_directions[cbStudentsDirections.SelectedItem.ToString()]}"
+				) ;
+			cbStudentsGroup.Items.Clear();
+			cbStudentsGroup.Items.AddRange(d_groups.Select(g => g.Key).ToArray());
+
+			//int t = tabControl.SelectedIndex;
+			//dgvStudents.DataSource =
+			//	connector.Select(
+			//	queries[t].Columns,
+			//	queries[t].Tables,
+			//	i == 0 ? "" : $"direction={ d_directions[cbStudentsDirections.SelectedItem.ToString()]}"
+			//	);
+			Query query = new Query(queries[0]);
+			query.Condition = (i == 0 || cbStudentsDirections.SelectedItem == null ? "" : $"direction={ d_directions[cbStudentsDirections.SelectedItem.ToString()]}");
+			LoadPage(0, query);
+
+		}
+
+       
+    }
 }
