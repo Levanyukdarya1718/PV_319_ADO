@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.34930.48
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.35425.106
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ADO.NET", "ADO.NET\ADO.NET.csproj", "{E650F651-E0E7-4FFD-9AC1-E109E0187A64}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalBase", "ExternalBase\ExternalBase.csproj", "{057A09CD-1AD6-4FDA-8F0E-89FE17E85DA9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Academy", "Academy\Academy.csproj", "{BE717978-C494-4312-8B03-9521B7FA6D08}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcademyDataSet", "AcademyDataSet\AcademyDataSet.csproj", "{94495A06-591E-4349-BF30-AEFDE9A80360}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{BE717978-C494-4312-8B03-9521B7FA6D08}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE717978-C494-4312-8B03-9521B7FA6D08}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE717978-C494-4312-8B03-9521B7FA6D08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94495A06-591E-4349-BF30-AEFDE9A80360}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94495A06-591E-4349-BF30-AEFDE9A80360}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94495A06-591E-4349-BF30-AEFDE9A80360}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94495A06-591E-4349-BF30-AEFDE9A80360}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
