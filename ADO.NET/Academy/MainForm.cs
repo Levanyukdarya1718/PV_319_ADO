@@ -239,8 +239,8 @@ namespace Academy
 						parent_condition += $"[{column_name}]={parent_dictionary[cb.SelectedItem.ToString()]}";
 					}
 
-			}
-                }
+				}
+            }
             
 			if (query.Condition == "") query.Condition = condition;
 			else if (condition != "") query.Condition += $" AND {condition}";
