@@ -17,6 +17,8 @@ namespace Academy
 		Connector connector;
 		public readonly Dictionary<string, int> d_directions;
 		public readonly	Dictionary<string, int> d_groups;
+		public Dictionary<ComboBox, List<ComboBox>> d_children;
+		public Dictionary<ComboBox, List<ComboBox>> d_parents;
 		DataGridView[] tables;
 		Query[] queries = new Query[]
 		{
@@ -52,6 +54,14 @@ namespace Academy
         public MainForm()
 		{
 			InitializeComponent();
+			d_children = new Dictionary<ComboBox, List<ComboBox>>()
+ 			{
+ 				{ cbStudentsDirection, new List<ComboBox>(){ cbStudentsGroup } }
+ 			};
+			d_parents = new Dictionary<ComboBox, List<ComboBox>>()
+			{
+				{cbStudentsGroup, new List<ComboBox> {cbStudentsDirection}}
+			};
 			tables = new DataGridView[]
 			{
 				dgvStudents,
@@ -96,8 +106,9 @@ namespace Academy
         private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
         { string tab_name = tabControl.SelectedTab.Name;
 			LoadPage(tabControl.SelectedIndex);
-			//int i = tabControl.SelectedIndex;
-			/*switch(tabControl.SelectedIndex)
+            //int i = tabControl.SelectedIndex;
+            #region SWITCH
+            /*switch(tabControl.SelectedIndex)
             {
 				case 0:
 					dgvStudents.DataSource = connector.Select
@@ -142,7 +153,8 @@ namespace Academy
 					dgvTeacher.DataSource = connector.Select("*", "Teachers");
 					toolStripStatusLabelCount.Text = $"Количество преподавателей:{dgvTeacher.RowCount - 1}.";
 					break;
-            }*/
+            }*/ 
+            #endregion
         }
 
   //      private void cbGroupsDirection_SelectedIndexChanged(object sender, EventArgs e)
@@ -173,45 +185,99 @@ namespace Academy
 
 		private void ComboBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			string combo_box_name = (sender as ComboBox).Name;
-			Console.WriteLine(combo_box_name);
+			string cb_name = (sender as ComboBox).Name;
 			string tab_name = tabControl.SelectedTab.Name;
+			int last_capital_index = Array.FindLastIndex<char>(cb_name.ToCharArray(), Char.IsUpper);
+			//https://stackoverflow.com/questions/32736514/find-last-substring-starting-with-uppercase-letter
+			string cb_suffix = cb_name.Substring(last_capital_index);
+			Console.WriteLine(cb_name);
 			Console.WriteLine(tab_name);
-
-			int last_capital_index = Array.FindLastIndex<char>(combo_box_name.ToCharArray(), Char.IsUpper);
-			string cb_suffix = combo_box_name.Substring(last_capital_index, combo_box_name.Length-last_capital_index);
 			Console.WriteLine(cb_suffix);
-
-			int i = cbStudentsDirection.SelectedIndex;
 			string dictionary_name = $"d_{cb_suffix.ToLower()}s";
-
-			Dictionary<string, int> dictionary = 
+			Console.WriteLine(dictionary_name);
+			Console.WriteLine("\n---------------------------------\n");
+			Dictionary<string, int> dictionary =
 				this.GetType().GetField(dictionary_name).GetValue(this) as Dictionary<string, int>;
-			Dictionary<string, int> d_groups = connector.GetDictionary
+			int i = (sender as ComboBox).SelectedIndex;
 
-				(
-				"group_id,group_name",
-				"Groups",
-				i <= 0 ? "" : $"{cb_suffix.ToLower()}={dictionary[(sender as ComboBox).SelectedItem.ToString()]}"
-				) ;
-			cbStudentsGroup.Items.Clear();
-			cbStudentsGroup.Items.AddRange(d_groups.Select(g => g.Key).ToArray());
-
-			//int t = tabControl.SelectedIndex;
-			//dgvStudents.DataSource =
-			//	connector.Select(
-			//	queries[t].Columns,
-			//	queries[t].Tables,
-			//	i == 0 ? "" : $"direction={ d_directions[cbStudentsDirections.SelectedItem.ToString()]}"
+			//Dictionary<string, int> d_groups = connector.GetDictionary
+			//	(
+			//	"group_id,group_name",
+			//	"Groups",
+			//	i == 0 ? "" : $"[{cb_suffix.ToLower()}]={dictionary[(sender as ComboBox).SelectedItem.ToString()]}"
 			//	);
+			//cbStudentsGroup.Items.Clear();
+			//cbStudentsGroup.Items.AddRange(d_groups.Select(g => g.Key).ToArray());
+			if (d_children.ContainsKey(sender as ComboBox))
+			{
+				foreach (ComboBox cb in d_children[sender as ComboBox])
+				{
+					GetDependentData(cb, sender as ComboBox);
+				}
+			}
+			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+		
+
 			Query query = new Query(queries[tabControl.SelectedIndex]);
 			string condition =
-				(i == 0 || (sender as ComboBox).SelectedItem == null ? "" : $"[{cb_suffix.ToLower()}]={dictionary[$"{(sender as ComboBox).SelectedItem}"]}");
+				(
+				i == 0|| 
+				(sender as ComboBox).SelectedItem == null ? "" : 
+				$"[{cb_suffix.ToLower()}]={dictionary[$"{(sender as ComboBox).SelectedItem}"]}"
+				);
+			string parent_condition = "";
+			if(d_parents.ContainsKey(sender as ComboBox))
+            {
+				foreach (ComboBox cb in d_parents[sender as ComboBox])
+				{
+					if (cb.SelectedItem != null && cb.SelectedIndex>0)
+					{
+						string column_name = cb.Name.Substring(Array.FindLastIndex<char>(cb.Name.ToCharArray(), Char.IsUpper));
+						string parent_dictionary_name = $"d_{column_name.ToLower()}s";
+						Dictionary<string, int> parent_dictionary = this.GetType().GetField(parent_dictionary_name).GetValue(this) as Dictionary<string, int>;
+					if (parent_condition != "") parent_condition += " AND ";
+						parent_condition += $"[{column_name}]={parent_dictionary[cb.SelectedItem.ToString()]}";
+					}
+
+			}
+                }
+            
 			if (query.Condition == "") query.Condition = condition;
 			else if (condition != "") query.Condition += $" AND {condition}";
+			if (query.Condition == "") query.Condition = parent_condition;
+			else if (parent_condition != "") query.Condition += $"AND {parent_condition}";
 			LoadPage(tabControl.SelectedIndex, query);
 		}
+		void GetDependentData(ComboBox dependent, ComboBox determinant)
+		{
+			Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+			Console.WriteLine(dependent.Name + "\t" + determinant.Name);
+			string dependent_root =
+				dependent.Name.Substring(Array.FindLastIndex<char>(dependent.Name.ToCharArray(), Char.IsUpper));
+			string determinant_root =
+				determinant.Name.Substring(Array.FindLastIndex<char>(determinant.Name.ToCharArray(), Char.IsUpper));
 
-     
-    }
+			Dictionary<string, int> dictionary =
+				connector.GetDictionary
+				(
+					$"{dependent_root.ToLower()}_id,{dependent_root.ToLower()}_name",
+					$"{dependent_root}s,{determinant_root}s",
+					determinant.SelectedItem == null || determinant.SelectedIndex <= 0 ? "" : $"{determinant_root.ToLower()}={determinant.SelectedIndex}"
+					);
+			foreach (KeyValuePair<string, int> d in dictionary)
+			{
+				Console.WriteLine($"{d.Value}\t{d.Key}");
+			}
+
+			dependent.Items.Clear();
+			dependent.Items.AddRange(dictionary.Select(d => d.Key).ToArray());
+			dependent.Items.Insert(0, "Все");
+			dependent.SelectedIndex = 0;
+
+			Console.WriteLine("Dependent:  \t" + dependent_root);
+			Console.WriteLine("Determinant:\t" + determinant_root);
+			Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+		}
+
+	}
 }
